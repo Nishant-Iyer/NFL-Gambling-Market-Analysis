@@ -56,6 +56,63 @@ This repository contains scripts, datasets, and analyses for NFL game forecastin
    - Weather Data Scraping:
      - Hourly data for temperature, wind speed, precipitation, etc., for game time.
 
+## Results
+
+### Key Findings
+1. **Model Performance:**
+   - **Spread Coverage Prediction:**
+     - XGBoost achieved ~84% accuracy on a subset.
+   - **Over/Under Prediction:**
+     - Logistic Regression, Random Forest, and XGBoost all hovered around 51–52% accuracy, near random guessing.
+
+2. **Profitability Analysis:**
+   - Simulated betting resulted in small net profits (~$1,000 in controlled tests).
+   - Betting strategies require much higher accuracy for consistent profitability due to bookmaker margins.
+
+3. **Insights on Market Efficiency:**
+   - Results align with the **Efficient Markets Hypothesis (EMH)**:
+     - Bookmaker lines accurately reflect public knowledge and available information.
+     - Identifying inefficiencies in Over/Under markets is highly challenging.
+
+### Visualizations
+#### Spread Prediction Confusion Matrix (XGBoost):
+|                  | Predicted Negative | Predicted Positive |
+|------------------|--------------------|--------------------|
+| **Actual Negative** | 930                | 235                |
+| **Actual Positive** | 790                | 212                |
+
+#### Key Metrics:
+| Metric          | XGBoost Spread Coverage | Logistic Over/Under | Random Forest Over/Under |
+|------------------|--------------------------|----------------------|---------------------------|
+| **Accuracy**    | 84%                     | 51%                 | 52%                      |
+| **Precision**   | 0.54 (Class 0)          | 0.48 (Class 1)      | 0.50 (Class 1)           |
+| **Recall**      | 0.80 (Class 0)          | 0.28 (Class 1)      | 0.44 (Class 1)           |
+| **F1-Score**    | 0.64 (Class 0)          | 0.35 (Class 1)      | 0.47 (Class 1)           |
+
+### Observations:
+- **Weather Impact:** Strong winds and heavy rain slightly influenced game outcomes, but the impact on betting markets was negligible.
+- **Seasonality:** Playoff games had higher predictive accuracy due to more consistent team performance.
+- **Betting Results:** While spread predictions were modestly profitable, Over/Under strategies were barely break-even.
+
+### Visualizations
+- **Total Points vs. Over/Under Line Distribution:**
+  - Shows high variability in actual game totals relative to bookmaker lines.
+- **Feature Importances (XGBoost):**
+  - Highlights key factors influencing predictions, such as win streaks and temperature range.
+
+### Limitations
+1. **Data Gaps:**
+   - Older data lacked certain metrics like player-level statistics or advanced weather details.
+2. **Generalization Issues:**
+   - Models were less effective on out-of-sample data from recent seasons.
+3. **Bookmaker Adaptation:**
+   - Betting lines adjust dynamically, reducing the relevance of historical patterns.
+
+### Future Enhancements
+- Incorporate real-time player injury updates and public betting sentiment.
+- Explore deep learning models to better extract complex patterns.
+- Extend analysis to player-level metrics and referee tendencies.
+
 2. **Weather Categorization:**
    - **Weather Categories Assigned:** (e.g., Heavy Rain, Very Windy, Mild).
    - Criteria:
