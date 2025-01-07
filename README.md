@@ -40,17 +40,51 @@ This repository contains scripts, datasets, and analyses for NFL game forecastin
 - Weather data integration for game predictions
 - Machine learning models to evaluate betting strategies
 
-Project Details
-Data Sources
-NFL game data: Dataset.xlsx
-Weather scraping results: NFL Weather Data Scrapping.html
-Models
-Machine learning models: XGBoost, Logistic Regression
-Metrics: Accuracy, F1-score, Profitability analysis
+## Project Details
 
-Results
-Key Findings
-The model achieved an average accuracy of ~51%.
-Significant variability in weather conditions impacts game outcomes.
+### Data Sources
+- **NFL Game Data:** Historical game data from 1980 to 2023 stored in `Dataset.xlsx`.
+- **Weather Data:** Extracted using Meteostat and Google Geocoding APIs, results compiled in:
+  - `NFL Weather Data Scrapping.html`
+  - `Analysis.html`
+
+### Key Components
+1. **Data Preparation:**
+   - Stadium Coordinates and Postal Codes:
+     - Extracted using the Google Maps API.
+     - Mapped stadium latitude, longitude, postal codes, and country codes.
+   - Weather Data Scraping:
+     - Hourly data for temperature, wind speed, precipitation, etc., for game time.
+
+2. **Weather Categorization:**
+   - **Weather Categories Assigned:** (e.g., Heavy Rain, Very Windy, Mild).
+   - Criteria:
+     - Precipitation ≥ 0.3 inches → *Heavy Rain*
+     - Wind Speed ≥ 30 mph → *Very Windy*
+     - Temperature < 32°F → *Freezing*
+
+3. **Machine Learning Models:**
+   - **Models Used:**
+     - XGBoost
+     - Logistic Regression
+     - Random Forest
+   - **Features:**
+     - Rolling averages of team performance (e.g., points scored, win streaks).
+     - Weather metrics like temperature range and wind impact.
+     - Game context features: playoff indicator, season stage.
+   - **Targets:**
+     - **Spread Coverage Prediction:** Whether the home team covers the spread.
+     - **Over/Under Prediction:** Predicting if total game points exceed the line.
+
+4. **Profitability Analysis:**
+   - Simulated $100 bets on predicted outcomes.
+   - Evaluated profitability, win rates, and losses.
+
+### Workflow
+1. Data Collection → Data Preprocessing → Feature Engineering.
+2. Model Training and Testing.
+3. Results Evaluation (Accuracy, Precision, Profitability).
+4. Reporting (Visualizations and Summary).
+
 
 
