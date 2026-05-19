@@ -134,5 +134,4 @@ venv.bak/
 
 # Local models and runs (large binaries)
 models/*.joblib
-reports/*.png
 *.sqlite3

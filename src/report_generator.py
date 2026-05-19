@@ -121,35 +121,6 @@ class ReportGenerator:
         content = content.replace('[Summarize findings for Under bets, similar to Over bets.]',
                                   f"Under bets simulation performed similarly, indicating that the bookmakers have priced total lines with high accuracy, making an edge extremely thin and sizing strategy critical.")
 
-        # Inject Visualizations directly into the report
-        visualizations_md = """
-## Visualizations and Artifacts
-
-Below are the plots generated during the execution of the MLOps pipeline.
-
-### Exploratory Data Analysis
-| Point Spread Distribution | Game Points vs Over/Under Line |
-|:---:|:---:|
-| ![Point Spread Distribution](reports/spread_distribution.png) | ![Total Points Distribution](reports/total_points_distribution.png) |
-
-### Model Performance & Explanations
-| Chronological Backtesting Accuracy | Feature Importance (Best Candidate) |
-|:---:|:---:|
-| ![Backtesting Accuracy](reports/backtesting_accuracy.png) | ![Feature Importance](reports/feature_importance.png) |
-
-### SHAP Explanations
-| SHAP Feature Importance (Bar) | SHAP Summary (Dot) |
-|:---:|:---:|
-| ![SHAP Bar Plot](reports/shap_summary_bar.png) | ![SHAP Dot Plot](reports/shap_summary_dot.png) |
-
-### Betting Performance (Out-of-Fold / Out-of-Sample)
-| Over Bets Bankroll Evolution | Under Bets Bankroll Evolution |
-|:---:|:---:|
-| ![Bankroll Over Fixed](reports/bankroll_over_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Over Kelly](reports/bankroll_over_kelly.png) <br> **Kelly Sizing** | ![Bankroll Under Fixed](reports/bankroll_under_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Under Kelly](reports/bankroll_under_kelly.png) <br> **Kelly Sizing** |
-"""
-        # Append plots to report
-        content += visualizations_md
-
         with open(output_path, 'w') as f:
             f.write(content)
         

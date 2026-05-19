@@ -78,6 +78,21 @@ An analysis of feature importance from the final XGBoost model revealed the most
 ### Top 15 Feature Importances:
 | Feature | Importance |
 | :-------------------------------- | :--------- |
+| `Elo_Prob_Home_Win` | 0.126306 |
+| `Elo_Away_Pre` | 0.105150 |
+| `Wind Impact` | 0.094965 |
+| `Elo_Diff` | 0.074671 |
+| `Away Recent Avg Points 5` | 0.074537 |
+| `Home Recent Win %` | 0.070504 |
+| `Away_Rest_Days` | 0.059857 |
+| `Home_Rest_Days` | 0.051401 |
+| `Over Under Line` | 0.047818 |
+| `Home Recent Avg Points 5` | 0.043422 |
+| `Away Recent Avg Allowed` | 0.038992 |
+| `Home Point Differential` | 0.036763 |
+| `Home Recent Avg Allowed` | 0.034210 |
+| `Away Point Differential` | 0.031707 |
+| `Away Recent Avg Allowed 5` | 0.030536 |
 | `Home Recent Std Allowed 5` | 0.040951 |
 | `Away Recent Std Points 5` | 0.039531 |
 | `Away_Travel_Distance` | 0.039507 |
@@ -188,26 +203,4 @@ Below are the plots generated during the execution of the MLOps pipeline.
 |:---:|:---:|
 | ![Bankroll Over Fixed](reports/bankroll_over_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Over Kelly](reports/bankroll_over_kelly.png) <br> **Kelly Sizing** | ![Bankroll Under Fixed](reports/bankroll_under_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Under Kelly](reports/bankroll_under_kelly.png) <br> **Kelly Sizing** |
 
-## Visualizations and Artifacts
 
-Below are the plots generated during the execution of the MLOps pipeline.
-
-### Exploratory Data Analysis
-| Point Spread Distribution | Game Points vs Over/Under Line |
-|:---:|:---:|
-| ![Point Spread Distribution](reports/spread_distribution.png) | ![Total Points Distribution](reports/total_points_distribution.png) |
-
-### Model Performance & Explanations
-| Chronological Backtesting Accuracy | Feature Importance (Best Candidate) |
-|:---:|:---:|
-| ![Backtesting Accuracy](reports/backtesting_accuracy.png) | ![Feature Importance](reports/feature_importance.png) |
-
-### SHAP Explanations
-| SHAP Feature Importance (Bar) | SHAP Summary (Dot) |
-|:---:|:---:|
-| ![SHAP Bar Plot](reports/shap_summary_bar.png) | ![SHAP Dot Plot](reports/shap_summary_dot.png) |
-
-### Betting Performance (Out-of-Fold / Out-of-Sample)
-| Over Bets Bankroll Evolution | Under Bets Bankroll Evolution |
-|:---:|:---:|
-| ![Bankroll Over Fixed](reports/bankroll_over_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Over Kelly](reports/bankroll_over_kelly.png) <br> **Kelly Sizing** | ![Bankroll Under Fixed](reports/bankroll_under_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Under Kelly](reports/bankroll_under_kelly.png) <br> **Kelly Sizing** |
