@@ -285,7 +285,10 @@ if app_mode == "Interactive Live Predictor":
                 ]
                 X_pred = X_pred[feature_columns]
                 
-                prob_over = model.predict_proba(X_pred)[0, 1]
+                clf = model["model"]
+                scaler = model["scaler"]
+                X_proc = scaler.transform(X_pred) if scaler else X_pred
+                prob_over = clf.predict_proba(X_proc)[0, 1]
                 prob_under = 1.0 - prob_over
                 
                 # Implied probabilities from odds
@@ -360,9 +363,11 @@ if app_mode == "Interactive Live Predictor":
                 # SHAP Explanation for this specific prediction
                 st.subheader("🔍 Local Prediction Explanation (SHAP Force Plot)")
                 try:
-                    explainer = shap.TreeExplainer(model.model if hasattr(model, 'model') else model)
+                    clf = model["model"]
+                    scaler = model["scaler"]
+                    explainer = shap.TreeExplainer(clf)
                     # We scaling numeric features
-                    if hasattr(model, 'scaler') and model.scaler:
+                    if scaler:
                         # Find numeric column indices
                         # Scaled predictions explanations can be visualised by back-transforming or just showing scaled SHAP values
                         pass
