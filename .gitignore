@@ -134,3 +134,6 @@ venv.bak/
 
 # Local models and runs (large binaries)
 *.sqlite3
+
+# Scratch directory
+scratch/

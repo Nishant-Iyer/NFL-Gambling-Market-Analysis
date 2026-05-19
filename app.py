@@ -71,18 +71,12 @@ def calculate_haversine_distance(lat1, lon1, lat2, lon2):
 
 # Load datasets and models
 @st.cache_data
-def load_historical_data():
+def load_clean_data():
     from src.data_preprocessing import DataPreprocessor
-    from src.elo_rating import EloCalculator
-    from src.feature_engineering import FeatureEngineer
-    
-    # We prefer the raw Excel dataset since it has complete metadata
     dataset_path = 'Dataset.xlsx'
     if not os.path.exists(dataset_path):
-        # Fallback to weather csv if excel is not available
         if os.path.exists('nfl_data_with_meteostat_weather.csv'):
             df = pd.read_csv('nfl_data_with_meteostat_weather.csv')
-            # Normalize column naming conventions to uppercase/titlecase
             mapping = {
                 'schedule_date': 'Schedule Date',
                 'schedule_season': 'schedule_season',
@@ -101,25 +95,37 @@ def load_historical_data():
                 'weather_wind_mph': 'Wind Speed (mph)'
             }
             df = df.rename(columns=mapping)
+            df['Schedule Date'] = pd.to_datetime(df['Schedule Date'])
             return df
         return pd.DataFrame()
-        
+    
     try:
-        # Load and clean with preprocessor
         preprocessor = DataPreprocessor(dataset_path)
         raw_df = preprocessor.load_data()
         clean_df = preprocessor.clean_and_preprocess(raw_df)
+        return clean_df
+    except Exception as e:
+        logging.error(f"Error loading clean data: {e}")
+        return pd.DataFrame()
+
+@st.cache_data
+def load_historical_data():
+    from src.elo_rating import EloCalculator
+    from src.feature_engineering import FeatureEngineer
+    
+    clean_df = load_clean_data()
+    if clean_df.empty:
+        return pd.DataFrame()
         
-        # Calculate dynamic Elo and engineer features
+    try:
         elo_calc = EloCalculator()
         fe = FeatureEngineer(elo_calculator=elo_calc)
         engineered_df = fe.compute_all_features(clean_df)
         return engineered_df
     except Exception as e:
-        logging.error(f"Error executing data preprocessing in app: {e}")
-        # Final fallback to raw read
+        logging.error(f"Error executing feature engineering in app: {e}")
         try:
-            return pd.read_excel(dataset_path)
+            return pd.read_excel('Dataset.xlsx')
         except:
             return pd.DataFrame()
 
@@ -159,37 +165,6 @@ init_bankroll = st.sidebar.number_input("Initial Bankroll ($)", value=5000.0, st
 fixed_bet = st.sidebar.number_input("Fixed Bet Sizing ($)", value=100.0, step=10.0)
 kelly_frac = st.sidebar.slider("Kelly Fraction", 0.0, 1.0, 0.5, step=0.1)
 
-# Helper to look up latest team states
-def get_latest_team_state(team, data):
-    # Standarize team name checks
-    team_games = data[(data['Team Home'] == team) | (data['Team Away'] == team)]
-    if team_games.empty:
-        return None
-    
-    # Sort chronologically to get the most recent game
-    team_games = team_games.sort_values(by='Schedule Date')
-    latest = team_games.iloc[-1]
-    
-    state = {}
-    if latest['Team Home'] == team:
-        state['Elo'] = latest.get('Home_Elo_Post', 1500)
-        state['Rolling_Avg_For_5'] = latest.get('Home_Rolling_Avg_Points_For_5', 20.0)
-        state['Rolling_Avg_Against_5'] = latest.get('Home_Rolling_Avg_Points_Against_5', 20.0)
-        state['Rolling_Avg_For_10'] = latest.get('Home_Rolling_Avg_Points_For_10', 20.0)
-        state['Rolling_Avg_Against_10'] = latest.get('Home_Rolling_Avg_Points_Against_10', 20.0)
-        state['Lat'] = latest.get('Home_Latitude', 39.0)
-        state['Lon'] = latest.get('Home_Longitude', -90.0)
-    else:
-        state['Elo'] = latest.get('Away_Elo_Post', 1500)
-        state['Rolling_Avg_For_5'] = latest.get('Away_Rolling_Avg_Points_For_5', 20.0)
-        state['Rolling_Avg_Against_5'] = latest.get('Away_Rolling_Avg_Points_Against_5', 20.0)
-        state['Rolling_Avg_For_10'] = latest.get('Away_Rolling_Avg_Points_For_10', 20.0)
-        state['Rolling_Avg_Against_10'] = latest.get('Away_Rolling_Avg_Points_Against_10', 20.0)
-        state['Lat'] = latest.get('Away_Latitude', 39.0)
-        state['Lon'] = latest.get('Away_Longitude', -90.0)
-        
-    return state
-
 # --- Interactive Live Predictor Mode ---
 if app_mode == "Interactive Live Predictor":
     st.header("🔮 Interactive Live Game Predictor")
@@ -220,71 +195,66 @@ if app_mode == "Interactive Live Predictor":
         if home_team == away_team:
             st.error("Error: Home Team and Away Team cannot be the same.")
         else:
-            # Lookup latest metrics
-            home_state = get_latest_team_state(home_team, df_historical)
-            away_state = get_latest_team_state(away_team, df_historical)
+            # 1. Load clean historical data
+            df_clean = load_clean_data()
             
-            if home_state is None or away_state is None:
-                st.error("Could not load stats for selected teams.")
+            if df_clean.empty:
+                st.error("Could not load historical data.")
             else:
-                # Travel Distance
-                # Home travel distance is 0
-                travel_dist_home = 0.0
-                # Away travel distance: compute using coordinates if available
-                travel_dist_away = calculate_haversine_distance(
-                    away_state['Lat'], away_state['Lon'],
-                    home_state['Lat'], home_state['Lon']
-                )
+                # 2. Find the stadium coordinate for the selected home team
+                home_games = df_clean[(df_clean['Team Home'] == home_team) & (df_clean['stadium_neutral'] == False)]
+                if home_games.empty:
+                    home_games = df_clean[df_clean['Team Home'] == home_team]
                 
-                # Season Stage
-                stage_code = 0 if week <= 6 else (1 if week <= 14 else 2) # Early, Mid, Late
+                if not home_games.empty:
+                    lat = home_games['Latitude'].median()
+                    lon = home_games['Longitude'].median()
+                else:
+                    lat = 39.0
+                    lon = -90.0
+                    
+                # 3. Construct the upcoming game row
+                latest_date = df_clean['Schedule Date'].max()
+                upcoming_date = latest_date + pd.Timedelta(days=7)
                 
-                # Feature Vector Construction
-                features = {
-                    'Spread Favorite': spread,
-                    'Over Under Line': ou_line,
-                    'Playoff_Game': 1 if playoff else 0,
-                    'Schedule Week': week,
-                    'Is_Dome': 1 if is_dome else 0,
-                    'Temp_Diff_From_65': abs(temp - 65),
-                    'Wind Speed (mph)': wind,
-                    'Season_Stage_Code': stage_code,
-                    'Home_Elo_Pre': home_state['Elo'],
-                    'Away_Elo_Pre': away_state['Elo'],
-                    'Home_Rest_Days': 7, # Default to standard rest week
-                    'Away_Rest_Days': 7,
-                    'Home_Travel_Distance': travel_dist_home,
-                    'Away_Travel_Distance': travel_dist_away,
-                    'Home_Rolling_Avg_Points_For_5': home_state['Rolling_Avg_For_5'],
-                    'Home_Rolling_Avg_Points_Against_5': home_state['Rolling_Avg_Against_5'],
-                    'Away_Rolling_Avg_Points_For_5': away_state['Rolling_Avg_For_5'],
-                    'Away_Rolling_Avg_Points_Against_5': away_state['Rolling_Avg_Against_5'],
-                    'Home_Rolling_Avg_Points_For_10': home_state['Rolling_Avg_For_10'],
-                    'Home_Rolling_Avg_Points_Against_10': home_state['Rolling_Avg_Against_10'],
-                    'Away_Rolling_Avg_Points_For_10': away_state['Rolling_Avg_For_10'],
-                    'Away_Rolling_Avg_Points_Against_10': away_state['Rolling_Avg_Against_10'],
-                    'Total_Line_Elo_Ratio': ou_line / (home_state['Elo'] + away_state['Elo']),
-                    'Spread_Elo_Interaction': spread * (home_state['Elo'] - away_state['Elo'])
-                }
+                upcoming_game = pd.DataFrame([{
+                    'Schedule Date': upcoming_date,
+                    'schedule_season': int(df_clean['schedule_season'].max()),
+                    'Schedule Week': int(week),
+                    'Schedule Playoff': playoff,
+                    'Team Home': home_team,
+                    'Score Home': np.nan,
+                    'Score Away': np.nan,
+                    'Team Away': away_team,
+                    'Team Favorite Id': home_team if spread < 0 else away_team,
+                    'Spread Favorite': float(spread),
+                    'Over Under Line': float(ou_line),
+                    'stadium_neutral': False,
+                    'Max Temperature (°F)': float(temp),
+                    'Min Temperature (°F)': float(temp),
+                    'Wind Speed (mph)': float(wind),
+                    'Latitude': float(lat),
+                    'Longitude': float(lon)
+                }])
+                
+                # 4. Combine and run feature engineer
+                with st.spinner("Calculating match features using historical timelines..."):
+                    combined_df = pd.concat([df_clean, upcoming_game], ignore_index=True)
+                    
+                    from src.elo_rating import EloCalculator
+                    from src.feature_engineering import FeatureEngineer
+                    
+                    elo_calc = EloCalculator()
+                    fe = FeatureEngineer(elo_calculator=elo_calc)
+                    engineered_combined = fe.compute_all_features(combined_df)
+                    
+                    pred_row = engineered_combined.iloc[[-1]]
+                    
+                    from src.feature_engineering import get_feature_columns_list
+                    feature_columns = get_feature_columns_list()
+                    X_pred = pred_row[feature_columns]
                 
                 # Predict
-                X_pred = pd.DataFrame([features])
-                # Reorder to match model features
-                feature_columns = [
-                    'Spread Favorite', 'Over Under Line', 'Playoff_Game',
-                    'Schedule Week', 'Is_Dome', 'Temp_Diff_From_65', 'Wind Speed (mph)',
-                    'Season_Stage_Code',
-                    'Home_Elo_Pre', 'Away_Elo_Pre',
-                    'Home_Rest_Days', 'Away_Rest_Days',
-                    'Home_Travel_Distance', 'Away_Travel_Distance',
-                    'Home_Rolling_Avg_Points_For_5', 'Home_Rolling_Avg_Points_Against_5',
-                    'Away_Rolling_Avg_Points_For_5', 'Away_Rolling_Avg_Points_Against_5',
-                    'Home_Rolling_Avg_Points_For_10', 'Home_Rolling_Avg_Points_Against_10',
-                    'Away_Rolling_Avg_Points_For_10', 'Away_Rolling_Avg_Points_Against_10',
-                    'Total_Line_Elo_Ratio', 'Spread_Elo_Interaction'
-                ]
-                X_pred = X_pred[feature_columns]
-                
                 clf = model["model"]
                 scaler = model["scaler"]
                 X_proc = scaler.transform(X_pred) if scaler else X_pred
