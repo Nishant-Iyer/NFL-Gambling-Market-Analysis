@@ -72,14 +72,56 @@ def calculate_haversine_distance(lat1, lon1, lat2, lon2):
 # Load datasets and models
 @st.cache_data
 def load_historical_data():
-    if os.path.exists('nfl_data_with_meteostat_weather.csv'):
-        # Use processed weather dataset if available
-        df = pd.read_csv('nfl_data_with_meteostat_weather.csv')
-    elif os.path.exists('Dataset.xlsx'):
-        df = pd.read_excel('Dataset.xlsx')
-    else:
-        df = pd.DataFrame()
-    return df
+    from src.data_preprocessing import DataPreprocessor
+    from src.elo_rating import EloCalculator
+    from src.feature_engineering import FeatureEngineer
+    
+    # We prefer the raw Excel dataset since it has complete metadata
+    dataset_path = 'Dataset.xlsx'
+    if not os.path.exists(dataset_path):
+        # Fallback to weather csv if excel is not available
+        if os.path.exists('nfl_data_with_meteostat_weather.csv'):
+            df = pd.read_csv('nfl_data_with_meteostat_weather.csv')
+            # Normalize column naming conventions to uppercase/titlecase
+            mapping = {
+                'schedule_date': 'Schedule Date',
+                'schedule_season': 'schedule_season',
+                'schedule_week': 'Schedule Week',
+                'schedule_playoff': 'Schedule Playoff',
+                'team_home': 'Team Home',
+                'score_home': 'Score Home',
+                'score_away': 'Score Away',
+                'team_away': 'Team Away',
+                'team_favorite_id': 'Team Favorite Id',
+                'spread_favorite': 'Spread Favorite',
+                'over_under_line': 'Over Under Line',
+                'stadium': 'Stadium',
+                'stadium_neutral': 'stadium_neutral',
+                'weather_temperature': 'Temperature (°F)',
+                'weather_wind_mph': 'Wind Speed (mph)'
+            }
+            df = df.rename(columns=mapping)
+            return df
+        return pd.DataFrame()
+        
+    try:
+        # Load and clean with preprocessor
+        preprocessor = DataPreprocessor(dataset_path)
+        raw_df = preprocessor.load_data()
+        clean_df = preprocessor.clean_and_preprocess(raw_df)
+        
+        # Calculate dynamic Elo and engineer features
+        elo_calc = EloCalculator()
+        fe = FeatureEngineer(elo_calculator=elo_calc)
+        engineered_df = fe.compute_all_features(clean_df)
+        return engineered_df
+    except Exception as e:
+        logging.error(f"Error executing data preprocessing in app: {e}")
+        # Final fallback to raw read
+        try:
+            return pd.read_excel(dataset_path)
+        except:
+            return pd.DataFrame()
 
 @st.cache_data
 def load_stadium_coordinates():
