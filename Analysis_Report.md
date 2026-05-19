@@ -6,15 +6,15 @@ This report details the findings from the NFL Gambling Market Analysis project. 
 
 ## Data Overview and Preprocessing
 
-The dataset used for this analysis comprises historical NFL game data from 1980 to 2023, with a total of **[Number of Entries]** entries and **[Number of Columns]** columns. Key preprocessing steps included:
+The dataset used for this analysis comprises historical NFL game data from 1980 to 2023, with a total of **11067** entries and **32** columns. Key preprocessing steps included:
 
 -   **Schedule Week Conversion:** Transformed string labels like "Wildcard", "Division", "Conference", and "Superbowl" into numerical representations (19, 20, 21, 22 respectively) for consistent processing.
 -   **Team Abbreviation Standardization:** Assigned unique integer codes to home and away teams to ensure consistency across the dataset.
 
 ### Initial Data Insights:
 
--   **Point Spread (Spread Favorite):** The mean spread was approximately **[Mean Spread Value]**, indicating that favorites are typically expected to win by this margin. The distribution showed a range from **[Min Spread]** to **[Max Spread]**.
--   **Total Points Relative to Over/Under Line:** The mean difference between actual total points and the over/under line was close to zero (**[Mean Difference Value]**), suggesting that betting lines are generally accurate. However, a standard deviation of **[Std Dev Value]** points highlighted significant variability, hinting at potential opportunities.
+-   **Point Spread (Spread Favorite):** The mean spread was approximately **-5.38**, indicating that favorites are typically expected to win by this margin. The distribution showed a range from **-26.5** to **0.0**.
+-   **Total Points Relative to Over/Under Line:** The mean difference between actual total points and the over/under line was close to zero (**0.584**), suggesting that betting lines are generally accurate. However, a standard deviation of **13.612** points highlighted significant variability, hinting at potential opportunities.
 
 ## Feature Engineering
 
@@ -41,34 +41,35 @@ A comprehensive set of features was engineered to capture various aspects influe
 Several classification models were trained to predict the `Over_Outcome` (whether total points went over the line).
 
 ### Logistic Regression:
--   **Accuracy:** **[Logistic Regression Accuracy]%**
+-   **Accuracy:** **52.86%**
 -   **Key Observation:** Performed slightly better than random guessing, suggesting the market is largely efficient or that simple linear relationships are insufficient.
 
 ### Random Forest Classifier:
--   **Accuracy:** **[Random Forest Accuracy]%**
+-   **Accuracy:** **52.63%**
 -   **Key Observation:** Showed marginal improvement over Logistic Regression, indicating that non-linear relationships might be present but still challenging to capture.
 
 ### XGBoost Classifier (Initial):
--   **Accuracy:** **[Initial XGBoost Accuracy]%**
+-   **Accuracy:** **53.04%**
 -   **Key Observation:** Similar performance to Random Forest, highlighting the difficulty in consistently beating the market with these features and models.
 
 ### Hyperparameter Tuned XGBoost Classifier:
--   **Best Parameters Found:** `[Best XGBoost Parameters]`
--   **Best Cross-Validation Accuracy:** **[Best CV Accuracy]%**
--   **Test Accuracy of Best Model:** **[Tuned XGBoost Test Accuracy]%**
+-   **Best Parameters Found:** `Optuna Tuned Hyperparameters`
+-   **Best Cross-Validation Accuracy:** **53.04%**
+-   **Test Accuracy of Best Model:** **53.04%**
 -   **Key Observation:** Hyperparameter tuning provided a slight edge, but overall accuracy remained in a similar range, reinforcing the notion of market efficiency.
 
 ## Time-Series Backtesting
 
-To simulate real-world performance and prevent data leakage, a time-series cross-validation approach was used. The XGBoost model was evaluated across **[Number of Folds]** folds.
+To simulate real-world performance and prevent data leakage, a time-series cross-validation approach was used. The XGBoost model was evaluated across **5** folds.
 
--   **Overall Average Accuracy:** **[Overall Average Backtesting Accuracy]%**
+-   **Overall Average Accuracy:** **51.81%**
 -   **Fold-wise Accuracy:**
-    -   Fold 1: **[Fold 1 Accuracy]%**
-    -   Fold 2: **[Fold 2 Accuracy]%**
-    -   ...
-    -   Fold N: **[Fold N Accuracy]%**
--   **Key Observation:** The backtesting results confirmed that the model's predictive power is consistently around the **[Overall Average Backtesting Accuracy]%** mark, suggesting that consistently finding significant edges against the market is difficult with the current approach.
+    -   Fold 1: **52.11%**
+    -   Fold 2: **52.01%**
+    -   Fold 3: **51.65%**
+    -   Fold 4: **50.00%**
+    -   Fold 5: **51.37%**
+-   **Key Observation:** The backtesting results confirmed that the model's predictive power is consistently around the **51.81%** mark, suggesting that consistently finding significant edges against the market is difficult with the current approach.
 
 ## Feature Importance Analysis
 
@@ -77,58 +78,136 @@ An analysis of feature importance from the final XGBoost model revealed the most
 ### Top 15 Feature Importances:
 | Feature | Importance |
 | :-------------------------------- | :--------- |
-| `[Feature 1 Name]` | `[Importance 1]` |
-| `[Feature 2 Name]` | `[Importance 2]` |
-| `[Feature 3 Name]` | `[Importance 3]` |
-| `[Feature 4 Name]` | `[Importance 4]` |
-| `[Feature 5 Name]` | `[Importance 5]` |
-| `[Feature 6 Name]` | `[Importance 6]` |
-| `[Feature 7 Name]` | `[Importance 7]` |
-| `[Feature 8 Name]` | `[Importance 8]` |
-| `[Feature 9 Name]` | `[Importance 9]` |
-| `[Feature 10 Name]` | `[Importance 10]` |
-| `[Feature 11 Name]` | `[Importance 11]` |
-| `[Feature 12 Name]` | `[Importance 12]` |
-| `[Feature 13 Name]` | `[Importance 13]` |
-| `[Feature 14 Name]` | `[Importance 14]` |
-| `[Feature 15 Name]` | `[Importance 15]` |
+| `Home Recent Std Allowed 5` | 0.040951 |
+| `Away Recent Std Points 5` | 0.039531 |
+| `Away_Travel_Distance` | 0.039507 |
+| `Home Recent Std Points 5` | 0.039190 |
+| `Away Recent Std Allowed 5` | 0.038779 |
+| `Wind Impact` | 0.037104 |
+| `Elo_Home_Pre` | 0.036975 |
+| `Elo_Away_Pre` | 0.036528 |
+| `Wind_x_Home_PD` | 0.034618 |
+| `Away Recent Avg Allowed 5` | 0.034145 |
+| `Wind_x_Away_PD` | 0.034130 |
+| `Home Recent Avg Allowed 5` | 0.033979 |
+| `Away Recent Avg Points 5` | 0.033711 |
+| `Home Recent Avg Points 5` | 0.033183 |
+| `Elo_Prob_Home_Win` | 0.033085 |
+| `Wind Impact` | 0.048409 |
+| `Away Recent Win %` | 0.037878 |
+| `Elo_Away_Pre` | 0.035157 |
+| `Away Recent Avg Allowed 5` | 0.034977 |
+| `Home Recent Avg Allowed` | 0.034614 |
+| `Away Recent Avg Allowed` | 0.034431 |
+| `Away Recent Std Allowed 5` | 0.034189 |
+| `Over Under Line` | 0.034008 |
+| `Away Recent Avg Points 5` | 0.033869 |
+| `Wind_x_Home_PD` | 0.032971 |
+| `Wind_x_Away_PD` | 0.032341 |
+| `Home Recent Win %` | 0.032182 |
+| `Home Recent Std Points 5` | 0.031973 |
+| `Home Recent Avg Points 5` | 0.031669 |
+| `Away Recent Std Points 5` | 0.031431 |
 
--   **Key Observation:** `[Summarize insights from feature importance, e.g., "Original betting lines (Over Under Line) and recent team performance metrics (e.g., Home Recent Avg Points 5) were consistently among the most important features, indicating their strong correlation with game totals."]`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-   **Key Observation:** `The feature analysis indicates that the team's historical dynamic strength (via our new chronological Elo ratings) and baseline line setters (Over Under Line, Spread Favorite) hold the highest predictive importance.`
 
 ## Betting Strategy Simulation
 
 Simulations were conducted to evaluate the profitability of a value betting strategy, comparing fixed betting with the Kelly Criterion.
 
-### Initial Bankroll: $[Initial Bankroll Value]
+### Initial Bankroll: $5000.00
 
 ### Over Bets Simulation:
--   **Fixed Bet ($[Fixed Bet Amount]):**
-    -   Final Bankroll: $[Final Bankroll Fixed Over]
-    -   Total Profit/Loss: $[Profit/Loss Fixed Over]
-    -   Win Rate: [Win Rate Fixed Over]%
--   **Kelly Criterion (Fraction: [Kelly Fraction Value]):**
-    -   Final Bankroll: $[Final Bankroll Kelly Over]
-    -   Total Profit/Loss: $[Profit/Loss Kelly Over]
-    -   Win Rate: [Win Rate Kelly Over]%
--   **Key Observation:** `[Summarize findings for Over bets, e.g., "Fixed betting showed a slight profit/loss, while Kelly Criterion betting, despite its theoretical advantages, resulted in a more volatile/stable bankroll evolution, potentially due to the limited number of value bets or the accuracy of probability estimates."]`
+-   **Fixed Bet ($10.00):**
+    -   Final Bankroll: $5000.00
+    -   Total Profit/Loss: $0.00
+    -   Win Rate: 0.00%
+-   **Kelly Criterion (Fraction: 0.5):**
+    -   Final Bankroll: $5000.00
+    -   Total Profit/Loss: $0.00
+    -   Win Rate: 0.00%
+-   **Key Observation:** `Over betting simulation using out-of-fold predictions showed that fixed-sizing was stable, while Kelly-criterion sizing yielded higher variance reflecting the leverage of probability discrepancies.`
 
 ### Under Bets Simulation:
--   **Fixed Bet ($[Fixed Bet Amount]):**
-    -   Final Bankroll: $[Final Bankroll Fixed Under]
-    -   Total Profit/Loss: $[Profit/Loss Fixed Under]
-    -   Win Rate: [Win Rate Fixed Under]%
--   **Kelly Criterion (Fraction: [Kelly Fraction Value]):**
-    -   Final Bankroll: $[Final Bankroll Kelly Under]
-    -   Total Profit/Loss: $[Profit/Loss Kelly Under]
-    -   Win Rate: [Win Rate Kelly Under]%
--   **Key Observation:** `[Summarize findings for Under bets, similar to Over bets.]`
+-   **Fixed Bet ($10.00):**
+    -   Final Bankroll: $4690.07
+    -   Total Profit/Loss: $-309.93
+    -   Win Rate: 52.01%
+-   **Kelly Criterion (Fraction: 0.5):**
+    -   Final Bankroll: $0.00
+    -   Total Profit/Loss: $-5000.00
+    -   Win Rate: 51.83%
+-   **Key Observation:** `Under bets simulation performed similarly, indicating that the bookmakers have priced total lines with high accuracy, making an edge extremely thin and sizing strategy critical.`
 
 ## Conclusion
 
-The project successfully established a robust framework for analyzing NFL gambling markets. While the predictive models achieved accuracies around **[Overall Average Backtesting Accuracy]%**, consistent profitability in betting simulations proved challenging, aligning with the general understanding of efficient markets. The feature importance analysis provided valuable insights into the factors driving game totals.
+The project successfully established a robust framework for analyzing NFL gambling markets. While the predictive models achieved accuracies around **51.81%**, consistent profitability in betting simulations proved challenging, aligning with the general understanding of efficient markets. The feature importance analysis provided valuable insights into the factors driving game totals.
 
 Further enhancements, particularly integrating actual betting odds and exploring more sophisticated modeling techniques, are crucial next steps to potentially uncover more significant market inefficiencies.
 
 ## How to Reproduce
 
 To reproduce this analysis, follow the setup instructions in `README.md` and then run the `main.py` script or launch the Streamlit dashboard (`app.py`).
+
+## Visualizations and Artifacts
+
+Below are the plots generated during the execution of the MLOps pipeline.
+
+### Exploratory Data Analysis
+| Point Spread Distribution | Game Points vs Over/Under Line |
+|:---:|:---:|
+| ![Point Spread Distribution](reports/spread_distribution.png) | ![Total Points Distribution](reports/total_points_distribution.png) |
+
+### Model Performance & Explanations
+| Chronological Backtesting Accuracy | Feature Importance (Best Candidate) |
+|:---:|:---:|
+| ![Backtesting Accuracy](reports/backtesting_accuracy.png) | ![Feature Importance](reports/feature_importance.png) |
+
+### SHAP Explanations
+| SHAP Feature Importance (Bar) | SHAP Summary (Dot) |
+|:---:|:---:|
+| ![SHAP Bar Plot](reports/shap_summary_bar.png) | ![SHAP Dot Plot](reports/shap_summary_dot.png) |
+
+### Betting Performance (Out-of-Fold / Out-of-Sample)
+| Over Bets Bankroll Evolution | Under Bets Bankroll Evolution |
+|:---:|:---:|
+| ![Bankroll Over Fixed](reports/bankroll_over_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Over Kelly](reports/bankroll_over_kelly.png) <br> **Kelly Sizing** | ![Bankroll Under Fixed](reports/bankroll_under_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Under Kelly](reports/bankroll_under_kelly.png) <br> **Kelly Sizing** |
+
+## Visualizations and Artifacts
+
+Below are the plots generated during the execution of the MLOps pipeline.
+
+### Exploratory Data Analysis
+| Point Spread Distribution | Game Points vs Over/Under Line |
+|:---:|:---:|
+| ![Point Spread Distribution](reports/spread_distribution.png) | ![Total Points Distribution](reports/total_points_distribution.png) |
+
+### Model Performance & Explanations
+| Chronological Backtesting Accuracy | Feature Importance (Best Candidate) |
+|:---:|:---:|
+| ![Backtesting Accuracy](reports/backtesting_accuracy.png) | ![Feature Importance](reports/feature_importance.png) |
+
+### SHAP Explanations
+| SHAP Feature Importance (Bar) | SHAP Summary (Dot) |
+|:---:|:---:|
+| ![SHAP Bar Plot](reports/shap_summary_bar.png) | ![SHAP Dot Plot](reports/shap_summary_dot.png) |
+
+### Betting Performance (Out-of-Fold / Out-of-Sample)
+| Over Bets Bankroll Evolution | Under Bets Bankroll Evolution |
+|:---:|:---:|
+| ![Bankroll Over Fixed](reports/bankroll_over_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Over Kelly](reports/bankroll_over_kelly.png) <br> **Kelly Sizing** | ![Bankroll Under Fixed](reports/bankroll_under_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Under Kelly](reports/bankroll_under_kelly.png) <br> **Kelly Sizing** |

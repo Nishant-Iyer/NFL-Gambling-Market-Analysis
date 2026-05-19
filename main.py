@@ -1,6 +1,7 @@
 import argparse
 import logging
 from src.run_analysis import run_full_analysis
+from src.report_generator import ReportGenerator
 
 # Configure logging for the main script
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -29,7 +30,7 @@ def main():
     parser.add_argument(
         '--kelly_fraction',
         type=float,
-        default=0.0,
+        default=0.5,
         help='Fraction of Kelly Criterion to use for bet sizing (e.g., 0.5 for half-Kelly). Set to 0.0 for fixed betting.'
     )
 
@@ -38,12 +39,19 @@ def main():
     logging.info(f"CLI arguments received: {args}")
 
     # Call the main analysis function with parsed arguments
-    run_full_analysis(
+    results = run_full_analysis(
         dataset_path=args.dataset_path,
         initial_bankroll=args.initial_bankroll,
         bet_amount_fixed=args.bet_amount_fixed,
         kelly_fraction=args.kelly_fraction
     )
+
+    # Automatically generate/update the detailed report markdown
+    if results:
+        logging.info("Generating final analysis report...")
+        rep_gen = ReportGenerator()
+        rep_gen.generate_report(results, output_path='Analysis_Report.md')
+        logging.info("Analysis Report completed.")
 
 if __name__ == '__main__':
     main()

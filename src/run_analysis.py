@@ -1,210 +1,213 @@
+import os
 import pandas as pd
-from src.data_preprocessing import load_nfl_data, preprocess_schedule_week, standardize_team_abbreviations
-from src.feature_engineering import calculate_game_outcomes, create_basic_features, create_advanced_team_features, create_season_stage_feature, get_feature_columns_list
-from src.model_training import create_target_variable, split_data, train_and_evaluate_logistic_regression, train_and_evaluate_random_forest, train_and_evaluate_xgboost, get_feature_importance, calculate_shap_values
-from src.visualizations import plot_point_spread_distribution, plot_total_points_relative_to_over_under_line, plot_backtesting_accuracy, plot_bankroll_evolution, plot_feature_importance, plot_shap_summary
-from src.backtesting import perform_time_series_backtesting
-from src.betting_strategy import calculate_implied_probabilities, identify_value_bets, simulate_betting_strategy
-from xgboost import XGBClassifier # Import here as it's used directly
-
+import numpy as np
 import logging
 
-# Configure logging for this module
+from src.data_preprocessing import DataPreprocessor
+from src.elo_rating import EloCalculator
+from src.feature_engineering import FeatureEngineer, get_feature_columns_list
+from src.model_training import (
+    create_target_variable,
+    split_data,
+    PipelineFactory,
+    get_feature_importance,
+    calculate_shap_values
+)
+from src.backtesting import WalkForwardBacktester
+from src.betting_strategy import (
+    calculate_implied_probabilities,
+    identify_value_bets,
+    BettingSimulator,
+    FixedBetSizing,
+    KellyCriterionBetSizing,
+    EdgeProportionalBetSizing
+)
+from src.visualizations import (
+    plot_point_spread_distribution,
+    plot_total_points_relative_to_over_under_line,
+    plot_backtesting_accuracy,
+    plot_bankroll_evolution,
+    plot_feature_importance,
+    plot_shap_summary
+)
+
+# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def run_full_analysis(dataset_path='../../Dataset.xlsx', **kwargs):
+def run_full_analysis(dataset_path='Dataset.xlsx', **kwargs):
     """
-    Runs the full NFL Gambling Market Analysis pipeline.
-
-    Args:
-        dataset_path (str): Path to the dataset file (e.g., 'Dataset.xlsx').
-        **kwargs: Additional arguments for betting strategy simulation (e.g., initial_bankroll,
-                  bet_amount_fixed, kelly_fraction).
+    Executes the enterprise-grade NFL Gambling Market Analysis pipeline.
     """
-    logging.info("Starting full NFL Gambling Market Analysis.")
-    print("\n## NFL Gambling Market Analysis")
-    print("\n### Objective:")
-    print("- Investigate the existence of inefficiencies in the NFL gambling markets by building predictive models for point spread and over/under outcomes using historical game data.")
-
-    print("\n### Data Preparation:")
-    print("1. Load the Dataset")
-    print("2. Check for Missing Values")
-    print("3. Convert Schedule Week Values")
-    print("4. Standardize Team Abbreviations")
-
-    nfl_data = load_nfl_data(dataset_path)
-    if nfl_data.empty:
-        logging.error("Failed to load data. Exiting analysis.")
-        return
-
-    print(nfl_data.info())
-    print(nfl_data.head())
-
-    nfl_data = preprocess_schedule_week(nfl_data)
-    nfl_data = standardize_team_abbreviations(nfl_data)
-
-    print("\n### Analyze the distributions of the point spread and the total points scored in NFL games relative to the betting lines (over/under)")
-    nfl_data = calculate_game_outcomes(nfl_data)
-
-    plot_point_spread_distribution(nfl_data)
-    plot_total_points_relative_to_over_under_line(nfl_data)
-
-    spread_stats = nfl_data['Spread Favorite'].describe()
-    total_points_stats = (nfl_data['Game Total Points'] - nfl_data['Over Under Line']).describe()
-    print("\nPoint Spread (Spread Favorite) Statistics:")
-    print(spread_stats)
-    print("\nTotal Points Relative to Over/Under Line Statistics:")
-    print(total_points_stats)
-
-    print("\n### Creating baseline predictive models that focus on whether actual game points fall over or under the set line.")
-    nfl_data = create_basic_features(nfl_data)
-    feature_columns = get_feature_columns_list()
-    nfl_data = create_advanced_team_features(nfl_data)
-    nfl_data = create_season_stage_feature(nfl_data)
-
-    print("\nEngineered Features Head:")
-    print(nfl_data[feature_columns].head())
-
-    nfl_data = create_target_variable(nfl_data)
-
-    X = nfl_data[feature_columns].dropna()
-    y = nfl_data.loc[X.index, 'Over_Outcome']
-
-    X_train, X_test, y_train, y_test = split_data(X, y)
-
-    train_and_evaluate_logistic_regression(X_train, X_test, y_train, y_test)
-    train_and_evaluate_random_forest(X_train, X_test, y_train, y_test)
+    logging.info("Starting Refactored NFL Gambling Market Analysis Pipeline.")
     
-    # Train and evaluate initial XGBoost model
-    _, initial_xgb_model = train_and_evaluate_xgboost(X_train, X_test, y_train, y_test)
+    # 1. Output directory setup
+    os.makedirs('reports', exist_ok=True)
+    os.makedirs('models', exist_ok=True)
 
-    print("\n--- Performing Time-Series Backtesting ---")
-    nfl_data_sorted = nfl_data.sort_values(by='Schedule Date').reset_index(drop=True)
-    X_backtest = nfl_data_sorted[feature_columns]
-    y_backtest = nfl_data_sorted['Over_Outcome']
+    # 2. Data Loading & Preprocessing
+    preprocessor = DataPreprocessor(dataset_path)
+    raw_data = preprocessor.load_data()
+    if raw_data.empty:
+        logging.error("Failed to load data. Aborting pipeline.")
+        return {}
 
-    xgb_model_for_backtesting = XGBClassifier(
-        learning_rate=0.01,
-        max_depth=3,
-        n_estimators=100,
-        subsample=0.8,
-        eval_metric='logloss',
-        random_state=42
-    )
+    clean_data = preprocessor.clean_and_preprocess(raw_data)
 
-    backtesting_results = perform_time_series_backtesting(
-        xgb_model_for_backtesting,
-        X_backtest,
-        y_backtest,
-        n_splits=5,
-        test_size=int(len(nfl_data_sorted) * 0.1)
-    )
+    # 3. Dynamic Elo Ratings
+    elo_calc = EloCalculator()
+    
+    # 4. Feature Engineering
+    fe = FeatureEngineer(elo_calculator=elo_calc)
+    engineered_data = fe.compute_all_features(clean_data)
+    
+    # Generate exploratory distributions plots
+    plot_point_spread_distribution(engineered_data, save_path='reports/spread_distribution.png')
+    plot_total_points_relative_to_over_under_line(engineered_data, save_path='reports/total_points_distribution.png')
 
-    print("\nBacktesting Results Summary:")
+    # 5. Extract Features and Target Chronologically
+    feature_columns = get_feature_columns_list()
+    engineered_data = create_target_variable(engineered_data)
+    
+    X = engineered_data[feature_columns].dropna()
+    y = engineered_data.loc[X.index, 'Over_Outcome']
+    
+    # Chronological Split (Train: 80%, Test: 20%)
+    X_train, X_test, y_train, y_test = split_data(X, y, test_size=0.2, chronological=True)
+
+    # 6. Model Evaluation (Loop through Candidates with Hyperparameter Tuning)
+    model_types = ['logistic_regression', 'random_forest', 'xgboost', 'lightgbm']
+    candidate_metrics = {}
+    pipelines = {}
+
+    for model_name in model_types:
+        logging.info(f"Training and Tuning: {model_name}")
+        pipeline = PipelineFactory.get_pipeline(model_name)
+        
+        # Hyperparameter tuning via Optuna (using training set)
+        pipeline.tune_hyperparameters(X_train, y_train, n_trials=15)
+        pipelines[model_name] = pipeline
+        
+        # Test Evaluation
+        test_preds = pipeline.predict(X_test)
+        from sklearn.metrics import accuracy_score
+        acc = accuracy_score(y_test, test_preds)
+        candidate_metrics[model_name] = acc
+        logging.info(f"{model_name} Test Accuracy: {acc:.4f}")
+
+    # 7. Walk-Forward Chronological Backtesting (using the best candidate based on test accuracy)
+    best_model_name = max(candidate_metrics, key=candidate_metrics.get)
+    logging.info(f"Best Candidate Model: {best_model_name} with {candidate_metrics[best_model_name]:.4f} accuracy.")
+    best_pipeline = pipelines[best_model_name]
+
+    backtester = WalkForwardBacktester(n_splits=5, test_size=int(len(X) * 0.1), gap=0)
+    backtesting_results = backtester.backtest(best_pipeline, X, y)
+    
     if backtesting_results:
-        print(f"Overall Average Accuracy: {backtesting_results['overall_average_accuracy']:.4f}")
-        plot_backtesting_accuracy(backtesting_results)
-    else:
-        logging.warning("No backtesting results available to summarize or plot.")
+        plot_backtesting_accuracy(backtesting_results, save_path='reports/backtesting_accuracy.png')
 
-    print("\n--- Exploring Market Efficiency and Value Betting Strategies ---")
+    # 8. Save the Trained Best Pipeline
+    # Fit the best model on all available data first
+    best_pipeline.fit(X, y)
+    best_pipeline.save('models/best_model.joblib')
 
-    final_xgb_model = XGBClassifier(
-        learning_rate=0.01,
-        max_depth=3,
-        n_estimators=100,
-        subsample=0.8,
-        eval_metric='logloss',
-        random_state=42
-    )
-    nfl_data_sorted = nfl_data.sort_values(by='Schedule Date').reset_index(drop=True)
-    X_final = nfl_data_sorted[feature_columns].dropna()
-    y_final = nfl_data_sorted.loc[X_final.index, 'Over_Outcome']
-    final_xgb_model.fit(X_final, y_final)
-
-    print("\n--- Analyzing Feature Importance ---")
-    feature_importance_df = get_feature_importance(final_xgb_model, feature_columns)
+    # 9. Interpretability (Feature Importance and SHAP Values)
+    feature_importance_df = get_feature_importance(best_pipeline, feature_columns)
     if not feature_importance_df.empty:
-        print("Top 15 Feature Importances:")
-        print(feature_importance_df.head(15))
-        plot_feature_importance(feature_importance_df)
-    else:
-        logging.warning("Could not retrieve feature importances.")
-        print("Could not retrieve feature importances.")
-
-    # --- SHAP Value Analysis ---
-    print("\n--- Performing SHAP Value Analysis ---")
-    shap_values, explainer = calculate_shap_values(final_xgb_model, X_final)
+        plot_feature_importance(feature_importance_df, save_path='reports/feature_importance.png')
+        
+    shap_values, explainer = calculate_shap_values(best_pipeline, X)
     if shap_values is not None:
-        print("SHAP values calculated. Generating plots...")
-        plot_shap_summary(shap_values, X_final, plot_type="bar")
-        plot_shap_summary(shap_values, X_final, plot_type="dot")
-    else:
-        logging.warning("Could not calculate SHAP values.")
-        print("Could not calculate SHAP values.")
+        plot_shap_summary(shap_values, X, plot_type="bar", save_path='reports/shap_summary_bar.png')
+        # Handle binary classification shapes (SHAP values can be list for RF/LGBM or array for XGB)
+        sample_shap = shap_values[1] if isinstance(shap_values, list) else shap_values
+        plot_shap_summary(sample_shap, X, plot_type="dot", save_path='reports/shap_summary_dot.png')
 
-    nfl_data_with_probs = calculate_implied_probabilities(nfl_data_sorted.copy())
-    nfl_data_with_probs_aligned = nfl_data_with_probs.loc[X_final.index]
+    # 10. Out-of-Sample Betting Strategy Simulation
+    # Align the probabilities derived from backtesting (OOF) to prevent look-ahead bias
+    nfl_data_sorted = clean_data.sort_values(by='Schedule Date').reset_index(drop=True)
+    nfl_data_with_odds = calculate_implied_probabilities(nfl_data_sorted.copy())
+    nfl_data_with_odds_aligned = nfl_data_with_odds.loc[X.index].copy()
+    
+    # Map out-of-fold probability of 'Over' directly from backtester results
+    nfl_data_with_odds_aligned['Model_Prob_Over'] = backtesting_results['oof_probs']
+    nfl_data_with_odds_aligned['Model_Prob_Under'] = 1.0 - backtesting_results['oof_probs']
+    nfl_data_with_odds_aligned['Over_Outcome'] = y
+
+    # Identify value bets using backtesting out-of-fold predictions
+    probability_threshold = kwargs.get('probability_threshold', 0.05)
+    
+    # Over value bets
+    over_value_bets = nfl_data_with_odds_aligned[
+        (nfl_data_with_odds_aligned['Model_Prob_Over'] - nfl_data_with_odds_aligned['Implied_Prob_Over']) > probability_threshold
+    ].copy()
+    over_value_bets['Bet_Recommendation'] = 'Over'
+    over_value_bets['Edge'] = over_value_bets['Model_Prob_Over'] - over_value_bets['Implied_Prob_Over']
+    over_value_bets['Odds'] = over_value_bets['American_Odds_Over']
+    over_value_bets['Model_Prob_Win'] = over_value_bets['Model_Prob_Over']
+    over_value_bets['Implied_Prob_Win'] = over_value_bets['Implied_Prob_Over']
+
+    # Under value bets
+    under_value_bets = nfl_data_with_odds_aligned[
+        (nfl_data_with_odds_aligned['Model_Prob_Under'] - nfl_data_with_odds_aligned['Implied_Prob_Under']) > probability_threshold
+    ].copy()
+    under_value_bets['Bet_Recommendation'] = 'Under'
+    under_value_bets['Edge'] = under_value_bets['Model_Prob_Under'] - under_value_bets['Implied_Prob_Under']
+    under_value_bets['Odds'] = under_value_bets['American_Odds_Under']
+    under_value_bets['Model_Prob_Win'] = under_value_bets['Model_Prob_Under']
+    under_value_bets['Implied_Prob_Win'] = under_value_bets['Implied_Prob_Under']
 
     initial_bankroll = kwargs.get('initial_bankroll', 1000.0)
     bet_amount_fixed = kwargs.get('bet_amount_fixed', 10.0)
-    kelly_fraction = kwargs.get('kelly_fraction', 0.0)
+    kelly_fraction = kwargs.get('kelly_fraction', 0.5)
 
-    over_value_bets = identify_value_bets(
-        nfl_data_with_probs_aligned,
-        final_xgb_model,
-        feature_columns,
-        probability_threshold=0.05,
-        bet_type='Over'
-    )
-
-    under_value_bets = identify_value_bets(
-        nfl_data_with_probs_aligned,
-        final_xgb_model,
-        feature_columns,
-        probability_threshold=0.05,
-        bet_type='Under'
-    )
-
-    print("\nIdentified Over Value Bets:")
-    if not over_value_bets.empty:
-        print(over_value_bets.head())
-        over_simulation_results_fixed = simulate_betting_strategy(
-            over_value_bets, initial_bankroll=initial_bankroll, bet_amount_fixed=bet_amount_fixed, kelly_fraction=0.0
-        )
-        plot_bankroll_evolution(over_simulation_results_fixed, title="Bankroll Evolution for Over Bets (Fixed Bet)")
-        
-        over_simulation_results_kelly = simulate_betting_strategy(
-            over_value_bets, initial_bankroll=initial_bankroll, kelly_fraction=kelly_fraction
-        )
-        plot_bankroll_evolution(over_simulation_results_kelly, title=f"Bankroll Evolution for Over Bets (Kelly Fraction: {kelly_fraction})")
-    else:
-        print("No Over value bets identified.")
-        logging.info("No Over value bets identified.")
-
-    print("\nIdentified Under Value Bets:")
-    if not under_value_bets.empty:
-        print(under_value_bets.head())
-        under_simulation_results_fixed = simulate_betting_strategy(
-            under_value_bets, initial_bankroll=initial_bankroll, bet_amount_fixed=bet_amount_fixed, kelly_fraction=0.0
-        )
-        plot_bankroll_evolution(under_simulation_results_fixed, title="Bankroll Evolution for Under Bets (Fixed Bet)")
-        
-        under_simulation_results_kelly = simulate_betting_strategy(
-            under_value_bets, initial_bankroll=initial_bankroll, kelly_fraction=kelly_fraction
-        )
-        plot_bankroll_evolution(under_simulation_results_kelly, title=f"Bankroll Evolution for Under Bets (Kelly Fraction: {kelly_fraction})")
-    else:
-        print("No Under value bets identified.")
-        logging.info("No Under value bets identified.")
+    simulator = BettingSimulator(initial_bankroll=initial_bankroll)
     
-    logging.info("Full NFL Gambling Market Analysis completed.")
+    # Simulate Over strategies
+    over_fixed = simulator.run_simulation(over_value_bets, FixedBetSizing(bet_amount_fixed))
+    over_kelly = simulator.run_simulation(over_value_bets, KellyCriterionBetSizing(kelly_fraction))
+    over_edge = simulator.run_simulation(over_value_bets, EdgeProportionalBetSizing(base_bet=bet_amount_fixed))
+    
+    # Save Over bankroll curves
+    plot_bankroll_evolution(over_fixed, title="Bankroll Evolution: Over Bets (Fixed Bet)", save_path='reports/bankroll_over_fixed.png')
+    plot_bankroll_evolution(over_kelly, title=f"Bankroll Evolution: Over Bets (Kelly: {kelly_fraction})", save_path='reports/bankroll_over_kelly.png')
+    
+    # Simulate Under strategies
+    under_fixed = simulator.run_simulation(under_value_bets, FixedBetSizing(bet_amount_fixed))
+    under_kelly = simulator.run_simulation(under_value_bets, KellyCriterionBetSizing(kelly_fraction))
+    under_edge = simulator.run_simulation(under_value_bets, EdgeProportionalBetSizing(base_bet=bet_amount_fixed))
+    
+    # Save Under bankroll curves
+    plot_bankroll_evolution(under_fixed, title="Bankroll Evolution: Under Bets (Fixed Bet)", save_path='reports/bankroll_under_fixed.png')
+    plot_bankroll_evolution(under_kelly, title=f"Bankroll Evolution: Under Bets (Kelly: {kelly_fraction})", save_path='reports/bankroll_under_kelly.png')
+
+    results = {
+        'num_entries': len(clean_data),
+        'num_columns': len(clean_data.columns),
+        'mean_spread': clean_data['Spread Favorite'].mean(),
+        'min_spread': clean_data['Spread Favorite'].min(),
+        'max_spread': clean_data['Spread Favorite'].max(),
+        'mean_diff_total': (clean_data['Score Home'] + clean_data['Score Away'] - clean_data['Over Under Line']).mean(),
+        'std_diff_total': (clean_data['Score Home'] + clean_data['Score Away'] - clean_data['Over Under Line']).std(),
+        'candidate_accuracies': candidate_metrics,
+        'best_model': best_model_name,
+        'backtesting_accuracy': backtesting_results.get('overall_accuracy', 0.0),
+        'backtesting_fold_accuracies': [f['accuracy'] for f in backtesting_results.get('fold_results', [])],
+        'feature_importances': feature_importance_df.head(15).to_dict('records'),
+        'over_fixed': over_fixed,
+        'over_kelly': over_kelly,
+        'over_edge': over_edge,
+        'under_fixed': under_fixed,
+        'under_kelly': under_kelly,
+        'under_edge': under_edge,
+    }
+    
+    logging.info("NFL Analysis completed successfully.")
+    return results
 
 if __name__ == '__main__':
-    # Example usage when run directly
     run_full_analysis(
-        dataset_path='../../Dataset.xlsx',
+        dataset_path='Dataset.xlsx',
         initial_bankroll=5000.0,
         bet_amount_fixed=25.0,
-        kelly_fraction=0.25 # Quarter Kelly
+        kelly_fraction=0.5
     )
