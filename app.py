@@ -55,7 +55,7 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.05);
     }
 </style>
-""", unsafe_allowed_html=True)
+""", unsafe_allow_html=True)
 
 # Helper function to compute haversine distance
 def calculate_haversine_distance(lat1, lon1, lat2, lon2):
