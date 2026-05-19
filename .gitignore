@@ -133,5 +133,4 @@ venv.bak/
 .LSOverride
 
 # Local models and runs (large binaries)
-models/*.joblib
 *.sqlite3
