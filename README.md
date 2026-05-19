@@ -1,5 +1,7 @@
 # NFL Gambling Market Analysis
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://nfl-gambling-market-analysis-nrtofnwx4xqxvpqj7mcvlj.streamlit.app)
+
 ## Project Overview
 
 This project investigates the efficiency of NFL gambling markets by developing predictive models for "Over/Under" outcomes using historical game data. It employs a modular Python codebase, advanced feature engineering, robust time-series backtesting, and betting strategy simulations to identify potential value bets. The goal is to provide a comprehensive analysis of market dynamics and model performance, demonstrating a full data science pipeline from data preprocessing to model deployment considerations.

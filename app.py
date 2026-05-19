@@ -331,19 +331,31 @@ if app_mode == "Interactive Live Predictor":
                         st.warning("🔴 **NO UNDER VALUE FOUND**")
 
                 # SHAP Explanation for this specific prediction
-                st.subheader("🔍 Local Prediction Explanation (SHAP Force Plot)")
+                st.subheader("🔍 Local Prediction Explanation (SHAP Waterfall Plot)")
                 try:
+                    import matplotlib.pyplot as plt
                     clf = model["model"]
                     scaler = model["scaler"]
-                    explainer = shap.TreeExplainer(clf)
-                    # We scaling numeric features
-                    if scaler:
-                        # Find numeric column indices
-                        # Scaled predictions explanations can be visualised by back-transforming or just showing scaled SHAP values
-                        pass
-                    st.info("SHAP details are shown in the Model Performance tab. Dynamic SHAP force plots require JS libraries. Explanations correspond to the variables defined above.")
+                    
+                    # Convert to DataFrame to retain feature names in plot
+                    X_proc = scaler.transform(X_pred) if scaler else X_pred
+                    X_proc_df = pd.DataFrame(X_proc, columns=feature_columns)
+                    
+                    explainer = shap.Explainer(clf, X_proc_df)
+                    shap_values = explainer(X_proc_df)
+                    
+                    fig, ax = plt.subplots(figsize=(10, 5))
+                    if len(shap_values.shape) == 3:
+                        shap.plots.waterfall(shap_values[0, :, 1], max_display=10, show=False)
+                    else:
+                        shap.plots.waterfall(shap_values[0], max_display=10, show=False)
+                    plt.title("SHAP Feature Attribution (Over Probability)", fontsize=12, pad=20)
+                    plt.tight_layout()
+                    st.pyplot(fig)
+                    plt.close(fig)
                 except Exception as e:
                     logging.error(f"SHAP explanation failed: {e}")
+                    st.info("SHAP details are shown in the Model Performance tab.")
 
 # --- Historical Model Performance Mode ---
 elif app_mode == "Historical Model Performance":
