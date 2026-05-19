@@ -186,21 +186,21 @@ Below are the plots generated during the execution of the MLOps pipeline.
 ### Exploratory Data Analysis
 | Point Spread Distribution | Game Points vs Over/Under Line |
 |:---:|:---:|
-| ![Point Spread Distribution](reports/spread_distribution.png) | ![Total Points Distribution](reports/total_points_distribution.png) |
+| <img src="reports/spread_distribution.png" width="450" alt="Point Spread Distribution"> | <img src="reports/total_points_distribution.png" width="450" alt="Total Points Distribution"> |
 
 ### Model Performance & Explanations
 | Chronological Backtesting Accuracy | Feature Importance (Best Candidate) |
 |:---:|:---:|
-| ![Backtesting Accuracy](reports/backtesting_accuracy.png) | ![Feature Importance](reports/feature_importance.png) |
+| <img src="reports/backtesting_accuracy.png" width="450" alt="Backtesting Accuracy"> | <img src="reports/feature_importance.png" width="450" alt="Feature Importance"> |
 
 ### SHAP Explanations
 | SHAP Feature Importance (Bar) | SHAP Summary (Dot) |
 |:---:|:---:|
-| ![SHAP Bar Plot](reports/shap_summary_bar.png) | ![SHAP Dot Plot](reports/shap_summary_dot.png) |
+| <img src="reports/shap_summary_bar.png" width="450" alt="SHAP Bar Plot"> | <img src="reports/shap_summary_dot.png" width="450" alt="SHAP Dot Plot"> |
 
 ### Betting Performance (Out-of-Fold / Out-of-Sample)
 | Over Bets Bankroll Evolution | Under Bets Bankroll Evolution |
 |:---:|:---:|
-| ![Bankroll Over Fixed](reports/bankroll_over_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Over Kelly](reports/bankroll_over_kelly.png) <br> **Kelly Sizing** | ![Bankroll Under Fixed](reports/bankroll_under_fixed.png) <br> **Fixed Sizing** <br> ![Bankroll Under Kelly](reports/bankroll_under_kelly.png) <br> **Kelly Sizing** |
+| <img src="reports/bankroll_over_fixed.png" width="450" alt="Bankroll Over Fixed"> <br> **Fixed Sizing** <br><br> <img src="reports/bankroll_over_kelly.png" width="450" alt="Bankroll Over Kelly"> <br> **Kelly Sizing** | <img src="reports/bankroll_under_fixed.png" width="450" alt="Bankroll Under Fixed"> <br> **Fixed Sizing** <br><br> <img src="reports/bankroll_under_kelly.png" width="450" alt="Bankroll Under Kelly"> <br> **Kelly Sizing** |
 
 
