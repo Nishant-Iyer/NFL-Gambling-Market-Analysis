@@ -115,6 +115,10 @@ streamlit run app.py
 
 This will open the application in your web browser, where you can adjust parameters and view results interactively.
 
+<p align="center">
+  <img src="reports/dashboard_mockup.png" width="800" alt="NFL Gambling Market Analytics Dashboard Mockup">
+</p>
+
 ## Results and Findings
 
 *(This section will be populated with a summary of the analysis findings, model performance, and betting simulation outcomes after running the full pipeline. It will draw insights from the generated `Analysis_Report.md`.)*
