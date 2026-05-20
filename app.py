@@ -20,42 +20,224 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling (Dark Mode / Glassmorphism)
+# Custom Styling (Dark Mode / Glassmorphism matching Portfolio Brand Theme)
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
     
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+    html, body, [class*="css"], .stApp {
+        background: radial-gradient(circle at 50% 50%, #110926 0%, #050505 100%) !important;
+        background-attachment: fixed !important;
+        color: #ffffff;
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     
     .main {
-        background-color: #0B0F19;
-        color: #E2E8F0;
+        background-color: transparent !important;
+        color: #ffffff;
+    }
+    
+    /* Strict Premium Typography Hierarchy */
+    h1 {
+        font-size: 2.2rem !important;
+        font-family: 'Sora', sans-serif !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.03em !important;
+        margin-bottom: 0.5rem !important;
+        color: #ffffff !important;
+    }
+    
+    h2 {
+        font-size: 1.4rem !important;
+        font-family: 'Sora', sans-serif !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.02em !important;
+        margin-top: 1.2rem !important;
+        margin-bottom: 0.6rem !important;
+        color: #ffffff !important;
+    }
+    
+    h3 {
+        font-size: 1.12rem !important;
+        font-family: 'Sora', sans-serif !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.01em !important;
+        margin-top: 0.8rem !important;
+        margin-bottom: 0.4rem !important;
+        color: #ffffff !important;
+    }
+    
+    p, li, label, span, div {
+        font-family: 'DM Sans', sans-serif !important;
+    }
+    
+    .stMarkdown p {
+        font-size: 0.95rem !important;
+        line-height: 1.6 !important;
+        color: #cccccc !important;
+    }
+    
+    .gradient-text {
+        background: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+    }
+    
+    [data-testid="stSidebar"] {
+        background-color: rgba(8, 8, 8, 0.95) !important;
+        backdrop-filter: blur(15px) !important;
+        border-right: 1px solid rgba(0, 212, 255, 0.1) !important;
+    }
+    
+    /* Custom design for Streamlit Metrics */
+    div[data-testid="stMetricValue"] {
+        font-family: 'Sora', sans-serif !important;
+        font-size: 1.7rem !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+    }
+    
+    div[data-testid="stMetricLabel"] {
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 0.78rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        color: #aaaaaa !important;
+    }
+    
+    div[data-testid="stMetricDelta"] {
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 0.85rem !important;
+    }
+    
+    [data-testid="metric-container"] {
+        background: rgba(10, 10, 10, 0.8) !important;
+        backdrop-filter: blur(25px) !important;
+        border: 1px solid rgba(0, 212, 255, 0.15) !important;
+        border-radius: 16px !important;
+        padding: 16px 12px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+        text-align: center !important;
+        min-height: 120px !important;
     }
     
     .stCard {
-        background: rgba(17, 24, 39, 0.7);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 20px;
+        background: rgba(10, 10, 10, 0.8) !important;
+        backdrop-filter: blur(25px) !important;
+        border: 1px solid rgba(0, 212, 255, 0.15) !important;
+        border-radius: 16px;
+        padding: 16px 12px;
+        margin-bottom: 15px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
     }
     
-    h1, h2, h3 {
-        color: #F8FAFC !important;
+    .stCard:hover {
+        transform: translateY(-4px);
+        border-color: rgba(168, 85, 247, 0.5) !important;
+        box-shadow: 0 12px 30px rgba(168, 85, 247, 0.25);
+    }
+    
+    .stButton>button {
+        background: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%) !important;
+        color: #050505 !important;
+        border-radius: 12px !important;
         font-weight: 700 !important;
+        border: none !important;
+        padding: 12px 28px !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2) !important;
     }
     
-    .stMetric {
-        background: rgba(30, 41, 59, 0.5);
-        border-radius: 8px;
-        padding: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+    .stButton>button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4) !important;
+        color: #050505 !important;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: transparent;
+        border-radius: 4px;
+        color: #888888;
+        font-size: 1.05rem;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #ffffff;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        color: #00d4ff !important;
+        border-bottom-color: #00d4ff !important;
+    }
+    
+    /* Streamlit slider customization */
+    .stSlider [data-baseweb="slider"] [role="slider"] {
+        background-color: #00d4ff !important;
+        border: 2px solid #a855f7 !important;
+        width: 18px !important;
+        height: 18px !important;
+    }
+    .stSlider [data-baseweb="slider"] > div > div > div {
+        background: linear-gradient(90deg, #00d4ff, #a855f7) !important;
+    }
+    
+    /* Custom style for numbers inputs, selectors, and dropdowns */
+    div[data-baseweb="input"] {
+        background-color: rgba(10, 10, 10, 0.8) !important;
+        border: 1px solid rgba(0, 212, 255, 0.15) !important;
+        border-radius: 10px !important;
+    }
+    div[data-baseweb="input"]:focus-within {
+        border-color: #a855f7 !important;
+    }
+    div[data-baseweb="select"] {
+        background-color: rgba(10, 10, 10, 0.8) !important;
+        border: 1px solid rgba(0, 212, 255, 0.15) !important;
+        border-radius: 10px !important;
+    }
+    
+    /* Fix side-by-side column header alignment on text wrap */
+    .column-header {
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        font-family: 'Sora', sans-serif !important;
+        font-size: 1.12rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 0.8rem;
+        line-height: 1.35;
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Plotly theme setups for unified look
+PLOTLY_LAYOUT_THEME = {
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "font": {"color": "#ffffff", "family": "DM Sans, sans-serif"},
+    "title_font": {"family": "Sora, sans-serif", "size": 15, "color": "#ffffff"},
+    "legend": {"font": {"family": "DM Sans", "size": 11, "color": "#ffffff"}},
+    "colorway": ["#00d4ff", "#a855f7", "#34d399", "#fbbf24", "#f87171"]
+}
+
+PLOTLY_AXIS_THEME = {
+    "gridcolor": "rgba(255, 255, 255, 0.05)",
+    "zerolinecolor": "rgba(255, 255, 255, 0.1)",
+    "title_font": {"family": "DM Sans", "size": 12, "color": "#aaaaaa"},
+    "tickfont": {"family": "DM Sans", "size": 11, "color": "#888888"}
+}
 
 # Helper function to compute haversine distance
 def calculate_haversine_distance(lat1, lon1, lat2, lon2):
@@ -149,8 +331,9 @@ df_stadiums = load_stadium_coordinates()
 model = load_prediction_model()
 
 # Title banner
-st.title("🏈 NFL Gambling Market Analytics Dashboard")
-st.markdown("---")
+st.markdown('<h1 class="gradient-text" style="margin-bottom: 0.2rem;">🏈 NFL Gambling Market Analytics Dashboard</h1>', unsafe_allow_html=True)
+st.markdown('<p style="font-size: 1.02rem; color: #aaaaaa; font-family: \'Sora\', sans-serif; margin-bottom: 1.5rem;">Chronological Walk-Forward Backtesting, Kelly Criterion Bet Optimizer & Global Feature Attributions</p>', unsafe_allow_html=True)
+st.write("")
 
 # Navigation Sidebar
 st.sidebar.title("Navigation")
@@ -279,20 +462,20 @@ if app_mode == "Interactive Live Predictor":
                     mode = "gauge+number",
                     value = prob_over * 100,
                     domain = {'x': [0, 1], 'y': [0, 1]},
-                    title = {'text': "Probability of OVER (%)", 'font': {'size': 20}},
+                    title = {'text': "Probability of OVER (%)", 'font': {'size': 18, 'family': 'Sora'}},
                     gauge = {
-                        'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "white"},
-                        'bar': {'color': "#10B981"},
-                        'bgcolor': "rgba(30, 41, 59, 0.5)",
-                        'borderwidth': 2,
-                        'bordercolor': "white",
+                        'axis': {'range': [0, 100], 'tickcolor': "white"},
+                        'bar': {'color': "#00d4ff" if prob_over >= 0.50 else "#a855f7"},
+                        'bgcolor': "#0a0a0a",
+                        'borderwidth': 1.5,
+                        'bordercolor': "rgba(255, 255, 255, 0.1)",
                         'steps': [
-                            {'range': [0, 50], 'color': 'rgba(239, 68, 68, 0.2)'},
-                            {'range': [50, 100], 'color': 'rgba(16, 185, 129, 0.2)'}
+                            {'range': [0, 50], 'color': "rgba(168, 85, 247, 0.1)"},
+                            {'range': [50, 100], 'color': "rgba(0, 212, 255, 0.1)"}
                         ]
                     }
                 ))
-                fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font={'color': "white", 'family': "Inter"})
+                fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white", 'family': "Sora, sans-serif"}, height=280)
                 st.plotly_chart(fig, use_container_width=True)
                 
                 # Edge and betting recommendations
@@ -331,9 +514,8 @@ if app_mode == "Interactive Live Predictor":
                         st.warning("🔴 **NO UNDER VALUE FOUND**")
 
                 # SHAP Explanation for this specific prediction
-                st.subheader("🔍 Local Prediction Explanation (SHAP Waterfall Plot)")
+                st.markdown('<div class="column-header">🔍 Local Prediction Explanation (SHAP Attributions)</div>', unsafe_allow_html=True)
                 try:
-                    import matplotlib.pyplot as plt
                     clf = model["model"]
                     scaler = model["scaler"]
                     
@@ -342,20 +524,47 @@ if app_mode == "Interactive Live Predictor":
                     X_proc_df = pd.DataFrame(X_proc, columns=feature_columns)
                     
                     explainer = shap.Explainer(clf, X_proc_df)
-                    shap_values = explainer(X_proc_df)
+                    shap_explanation = explainer(X_proc_df)
                     
-                    fig, ax = plt.subplots(figsize=(10, 5))
-                    if len(shap_values.shape) == 3:
-                        shap.plots.waterfall(shap_values[0, :, 1], max_display=10, show=False)
+                    # Extract raw SHAP values from Explanation object
+                    vals = shap_explanation.values
+                    if len(vals.shape) == 3:
+                        local_shap = vals[0, :, 1]
+                    elif len(vals.shape) == 2:
+                        local_shap = vals[0, :]
                     else:
-                        shap.plots.waterfall(shap_values[0], max_display=10, show=False)
-                    plt.title("SHAP Feature Attribution (Over Probability)", fontsize=12, pad=20)
-                    plt.tight_layout()
-                    st.pyplot(fig)
-                    plt.close(fig)
+                        local_shap = vals
+                        
+                    df_shap = pd.DataFrame({
+                        "Feature": feature_columns,
+                        "SHAP Value": local_shap
+                    })
+                    
+                    # Sort by absolute SHAP value to get the top 10 impact drivers
+                    df_shap["abs_val"] = df_shap["SHAP Value"].abs()
+                    df_shap = df_shap.sort_values(by="abs_val", ascending=False).head(10)
+                    df_shap = df_shap.sort_values(by="SHAP Value", ascending=True)
+                    
+                    # Define colors: Cyan (#00d4ff) for OVER-favoring features, Violet (#a855f7) for UNDER-favoring features
+                    df_shap["Color"] = df_shap["SHAP Value"].apply(lambda x: "#00d4ff" if x >= 0 else "#a855f7")
+                    
+                    fig_shap = px.bar(
+                        df_shap, x="SHAP Value", y="Feature",
+                        orientation="h",
+                        color="Color",
+                        color_discrete_map="identity"
+                    )
+                    fig_shap.update_layout(
+                        height=380,
+                        margin=dict(l=60, r=20, t=20, b=40),
+                        **PLOTLY_LAYOUT_THEME
+                    )
+                    fig_shap.update_xaxes(**PLOTLY_AXIS_THEME)
+                    fig_shap.update_yaxes(**PLOTLY_AXIS_THEME)
+                    st.plotly_chart(fig_shap, use_container_width=True)
                 except Exception as e:
                     logging.error(f"SHAP explanation failed: {e}")
-                    st.info("SHAP details are shown in the Model Performance tab.")
+                    st.info("SHAP details could not be computed automatically for this matchup.")
 
 # --- Historical Model Performance Mode ---
 elif app_mode == "Historical Model Performance":
@@ -372,8 +581,18 @@ elif app_mode == "Historical Model Performance":
             "Validation Accuracy": [0.518, 0.523, 0.531, 0.539]
         }
         df_cand = pd.DataFrame(candidates)
-        fig = px.bar(df_cand, x="Model", y="Validation Accuracy", color="Validation Accuracy",
-                     color_continuous_scale="Viridis", text_auto=".3f", title="Candidate Test Accuracy")
+        fig = px.bar(
+            df_cand, x="Model", y="Validation Accuracy",
+            text_auto=".3f"
+        )
+        fig.update_traces(marker_color='#00d4ff')
+        fig.update_layout(
+            height=400,
+            margin=dict(l=50, r=30, t=20, b=50),
+            **PLOTLY_LAYOUT_THEME
+        )
+        fig.update_xaxes(**PLOTLY_AXIS_THEME)
+        fig.update_yaxes(**PLOTLY_AXIS_THEME)
         st.plotly_chart(fig, use_container_width=True)
         
     with tabs[1]:
