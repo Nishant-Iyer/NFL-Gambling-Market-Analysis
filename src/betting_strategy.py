@@ -201,6 +201,11 @@ class BettingSimulator:
                 continue
 
             num_bets += 1
+            if row.get('Is_Push', False):
+                # Total landed exactly on the line: the stake is returned.
+                bankroll_history.append(bankroll)
+                pnl.append(0.0)
+                continue
             bet_won = False
             if row['Bet_Recommendation'] == 'Over' and row['Over_Outcome'] == 1:
                 bet_won = True

@@ -132,6 +132,12 @@ def run_full_analysis(dataset_path='Dataset.xlsx', **kwargs):
     nfl_data_with_odds_aligned['Model_Prob_Over'] = backtesting_results['oof_probs']
     nfl_data_with_odds_aligned['Model_Prob_Under'] = 1.0 - backtesting_results['oof_probs']
     nfl_data_with_odds_aligned['Over_Outcome'] = y
+    totals = nfl_data_with_odds_aligned['Score Home'] + nfl_data_with_odds_aligned['Score Away']
+    nfl_data_with_odds_aligned['Is_Push'] = totals == nfl_data_with_odds_aligned['Over Under Line']
+
+    # Bet only on games that were predicted out of sample. The other rows have no
+    # walk-forward prediction (their placeholder probability is 0).
+    nfl_data_with_odds_aligned = nfl_data_with_odds_aligned[backtesting_results['oof_mask']]
 
     # Identify value bets using backtesting out-of-fold predictions
     probability_threshold = kwargs.get('probability_threshold', 0.05)
