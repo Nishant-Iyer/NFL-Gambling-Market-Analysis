@@ -2,18 +2,30 @@
 
 Can a model beat the bookmakers' Over/Under lines? This project builds the features a sharp bettor would use (team strength, rest, travel, weather) and tests them honestly with walk-forward backtesting and simulated betting. The short answer: the market is very efficient, and this project measures how efficient.
 
-**[Live demo](https://nfl-gambling-market-analysis-nrtofnwx4xqxvpqj7mcvlj.streamlit.app)** · **[Full report](Analysis_Report.md)**
+**[Live demo](https://www.konnectingnots.com/demos/nfl.html)** · **[Case study](https://www.konnectingnots.com/projects/nfl-betting.html)** · **[Full report](Analysis_Report.md)**
 
 ## Results
 
+Walk-forward backtest over 5,460 games (December 2003 to February 2024). The model family and its settings were chosen on games before the first test window, and each window was predicted by a model trained only on earlier games. Odds are −110 on both sides; pushes return the stake.
+
 | | |
 |---|---|
-| Games analysed | 11,067 (1980–2023) with real Over/Under lines |
-| Walk-forward accuracy (5 folds) | **51.8%** (folds ranged 50.0–52.1%) |
-| Break-even accuracy at −110 odds | 52.4% |
-| Best single test split (tuned XGBoost) | 53.0% |
+| Games with features and a closing Over/Under line | 10,923 (1980–2024) |
+| Model | XGBoost (picked over logistic regression on pre-2003 games) |
+| Accuracy on every test game | 51.7% (folds 50.4–54.7%) |
+| Break-even win rate at −110 | 52.4% |
 
-At standard −110 odds a bettor needs to win 52.4% of bets just to break even. In walk-forward testing the model stays just below that line. In the betting simulation, flat $10 bets on Unders lost about 6% of a $5,000 bankroll, and half-Kelly sizing lost all of it. That's the main finding: the edge from public data is too thin to bet, and aggressive sizing turns a thin edge into ruin.
+Picking a side in every game doesn't pay. Betting only where the model disagrees with the line does better:
+
+| Strategy ($5,000 bankroll) | Bets | Win rate | Return on stakes |
+|---|---|---|---|
+| Flat $50, any edge over break-even | 1,317 | 55.0% | +4.9% |
+| Flat $50, edge ≥ 3 points | 341 | 55.7% | +6.2% |
+| Half Kelly, edge ≥ 3 points | 341 | 55.7% | +3.6% (worst drop 56%) |
+
+Almost all of the edge is on Unders: 56.0% over 1,109 Under bets, against 48.9% over 188 Over bets. That fits the market's known lean toward Overs. The overall result is about 1.9 standard errors above break-even, so it's suggestive rather than proven, and it assumes every bet gets −110 at the closing line.
+
+Numbers come from `scripts/export_demo.py` (`demo/nfl-summary.json`), which the **Backtest and export demo data** GitHub Action reruns on every change to `src/`.
 
 The most useful features were Elo-based team strength, wind speed, recent scoring form and rest days.
 
@@ -23,7 +35,7 @@ The most useful features were Elo-based team strength, wind speed, recent scorin
 2. **Features:** chronological Elo ratings, 3- and 5-game rolling form and volatility, rest days, away-team travel distance, temperature range and wind, plus wind × point-differential interactions.
 3. **Models:** logistic regression, random forest and XGBoost (tuned with Optuna).
 4. **Backtesting:** time-series cross-validation, so the model only ever trains on games before the ones it predicts.
-5. **Betting simulation:** converts lines to implied probabilities (−110 assumed on both sides), finds bets where the model disagrees with the market, and compares flat and Kelly sizing.
+5. **Betting simulation:** converts lines to implied probabilities (−110 assumed on both sides), bets only on out-of-sample games where the model disagrees with the market, and compares flat and Kelly sizing.
 6. **Explanations:** SHAP plots show what drives each prediction.
 
 ## Project layout
@@ -40,6 +52,7 @@ src/
   report_generator.py     writes Analysis_Report.md
 main.py                   command-line entry point
 app.py                    Streamlit dashboard
+scripts/export_demo.py    walk-forward backtest exported for the browser demo
 tests/                    pipeline tests
 ```
 
@@ -61,7 +74,7 @@ Other options: `--dataset_path` (default `Dataset.xlsx`) and `--bet_amount_fixed
 
 - Real per-game odds instead of assuming −110, since line shopping alone can move break-even.
 - Player-level data such as injuries and quarterback changes, which public team stats miss.
-- Betting only the highest-confidence games, and checking whether that subset clears 52.4%.
+- More seasons of out-of-sample bets, to tell whether the Under edge is real or noise.
 
 ## Stack
 
