@@ -1,143 +1,68 @@
-# NFL Gambling Market Analysis
+# NFL Betting Market Analysis
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://nfl-gambling-market-analysis-nrtofnwx4xqxvpqj7mcvlj.streamlit.app)
+Can a model beat the bookmakers' Over/Under lines? This project builds the features a sharp bettor would use (team strength, rest, travel, weather) and tests them honestly with walk-forward backtesting and simulated betting. The short answer: the market is very efficient, and this project measures how efficient.
 
-## Project Overview
+**[Live demo](https://nfl-gambling-market-analysis-nrtofnwx4xqxvpqj7mcvlj.streamlit.app)** · **[Full report](Analysis_Report.md)**
 
-This project investigates the efficiency of NFL gambling markets by developing predictive models for "Over/Under" outcomes using historical game data. It employs a modular Python codebase, advanced feature engineering, robust time-series backtesting, and betting strategy simulations to identify potential value bets. The goal is to provide a comprehensive analysis of market dynamics and model performance, demonstrating a full data science pipeline from data preprocessing to model deployment considerations.
+## Results
 
-## Features
+| | |
+|---|---|
+| Games analysed | 11,067 (1980–2023) with real Over/Under lines |
+| Walk-forward accuracy (5 folds) | **51.8%** (folds ranged 50.0–52.1%) |
+| Break-even accuracy at −110 odds | 52.4% |
+| Best single test split (tuned XGBoost) | 53.0% |
 
--   **Modular Codebase:** Organized into dedicated Python scripts (`src/`) for data preprocessing, feature engineering, model training, backtesting, betting strategy, and visualizations.
--   **Data Preprocessing:** Handles data loading, schedule week conversion (e.g., "Wildcard" to integer), and standardization of team abbreviations.
--   **Advanced Feature Engineering:**
-    -   Basic features: Rolling averages of points, playoff indicators, temperature range, wind impact.
-    -   Advanced team-specific features: Recent average points scored/allowed (3-game and 5-game windows), recent win percentages, win streaks, and point differentials.
-    -   Volatility features: 5-game rolling standard deviations for points scored/allowed.
-    -   Interaction terms: E.g., `Wind Impact x Point Differential`.
-    -   Season stage indicator: Categorizes games into 'Early', 'Mid', 'Late', 'Playoffs'.
--   **Machine Learning Models:** Implements Logistic Regression, Random Forest, and XGBoost Classifiers for predicting "Over/Under" outcomes.
--   **Hyperparameter Tuning:** Uses `GridSearchCV` for optimizing XGBoost model parameters.
--   **Time-Series Backtesting:** A robust framework (`TimeSeriesSplit`) to evaluate model performance over time, preventing data leakage and simulating real-world betting scenarios.
--   **Feature Importance Analysis:** Identifies the most influential features in the predictive models.
--   **Betting Strategy Simulation:**
-    -   Calculates implied probabilities from simulated American odds.
-    -   Identifies value bets by comparing model-predicted probabilities with implied probabilities.
-    -   Simulates fixed-betting and Kelly Criterion strategies to track bankroll evolution.
--   **Visualizations:** Generates plots for data distributions, backtesting accuracy across folds, feature importance, and bankroll evolution during betting simulations.
--   **Command-Line Interface (CLI):** A `main.py` script allows users to run the full analysis with configurable parameters directly from the terminal.
--   **Interactive Dashboard (Streamlit):** A `app.py` provides a user-friendly web interface to run the analysis, visualize results, and interact with parameters without writing code.
+At standard −110 odds a bettor needs to win 52.4% of bets just to break even. In walk-forward testing the model stays just below that line. In the betting simulation, flat $10 bets on Unders lost about 6% of a $5,000 bankroll, and half-Kelly sizing lost all of it. That's the main finding: the edge from public data is too thin to bet, and aggressive sizing turns a thin edge into ruin.
 
-## Project Structure
+The most useful features were Elo-based team strength, wind speed, recent scoring form and rest days.
+
+## How it works
+
+1. **Data:** historical games and betting lines, joined with stadium coordinates and game-day weather from Meteostat.
+2. **Features:** chronological Elo ratings, 3- and 5-game rolling form and volatility, rest days, away-team travel distance, temperature range and wind, plus wind × point-differential interactions.
+3. **Models:** logistic regression, random forest and XGBoost (tuned with Optuna).
+4. **Backtesting:** time-series cross-validation, so the model only ever trains on games before the ones it predicts.
+5. **Betting simulation:** converts lines to implied probabilities (−110 assumed on both sides), finds bets where the model disagrees with the market, and compares flat and Kelly sizing.
+6. **Explanations:** SHAP plots show what drives each prediction.
+
+## Project layout
 
 ```
-.
-├── app.py                          # Streamlit interactive dashboard
-├── main.py                         # Command-Line Interface (CLI) entry point
-├── Dataset.xlsx                    # Raw historical NFL game data
-├── README.md                       # Project README file
-├── Analysis_Report.md              # Detailed analysis report (to be generated)
-└── src/
-    ├── __init__.py                 # Makes src a Python package
-    ├── backtesting.py              # Functions for time-series cross-validation and model evaluation
-    ├── betting_strategy.py         # Functions for implied probabilities, value bets, and simulation
-    ├── data_preprocessing.py       # Functions for data loading, cleaning, and initial transformations
-    ├── feature_engineering.py      # Functions for creating basic and advanced features
-    ├── model_training.py           # Functions for target variable creation, model training, and evaluation
-    ├── run_analysis.py             # Encapsulates the full analysis pipeline, called by CLI and Streamlit
-    ├── visualizations.py           # Functions for generating various plots and charts
-    └── notebook_scripts/           # Original Jupyter notebooks converted to Python scripts (for reference)
-        ├── Main_NFL_In_Month_Forecasting.py
-        ├── Main_NFL_Weather_Scrapping.py
-        ├── Reference_Analysis.py
-        ├── Reference_NFL_In_Month_Forecasting.py
-        ├── Reference_NFL_Weather_Scrapping.py
-        └── Reference_Notebooks_NFL_Weather_Data_Scrapping.py
+src/
+  data_preprocessing.py   load and clean games, standardize teams and weeks
+  elo_rating.py           chronological Elo ratings
+  feature_engineering.py  form, rest, travel, weather and interaction features
+  model_training.py       model training and tuning
+  backtesting.py          walk-forward cross-validation
+  betting_strategy.py     implied odds, value bets, flat and Kelly simulations
+  visualizations.py       charts in reports/
+  report_generator.py     writes Analysis_Report.md
+main.py                   command-line entry point
+app.py                    Streamlit dashboard
+tests/                    pipeline tests
 ```
 
-## Setup and Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/NFL-Gambling-Market-Analysis.git
-    cd NFL-Gambling-Market-Analysis
-    ```
-
-2.  **Create a virtual environment (recommended):**
-    ```bash
-    python -m venv venv
-    # On Windows
-    .\venv\Scripts\activate
-    # On macOS/Linux
-    source venv/bin/activate
-    ```
-
-3.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-    *(Note: A `requirements.txt` file will be generated in the next step.)*
-
-4.  **Ensure `Dataset.xlsx` is in the project root directory.** If your dataset has a different name or path, update `main.py` and `app.py` accordingly, or use the `--dataset_path` argument for the CLI.
-
-## Usage
-
-### Command-Line Interface (CLI)
-
-You can run the full analysis pipeline using the `main.py` script.
+## Run it
 
 ```bash
-python main.py --help
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+python main.py                                   # full analysis with defaults
+python main.py --initial_bankroll 5000 --kelly_fraction 0.5
+streamlit run app.py                             # interactive dashboard
+python -m pytest tests/                          # tests
 ```
 
-**Example usage:**
+Other options: `--dataset_path` (default `Dataset.xlsx`) and `--bet_amount_fixed` (default 10).
 
--   **Run with default parameters:**
-    ```bash
-    python main.py
-    ```
+## What would improve it
 
--   **Specify a different dataset path and initial bankroll:**
-    ```bash
-    python main.py --dataset_path "path/to/your/data.xlsx" --initial_bankroll 5000
-    ```
+- Real per-game odds instead of assuming −110, since line shopping alone can move break-even.
+- Player-level data such as injuries and quarterback changes, which public team stats miss.
+- Betting only the highest-confidence games, and checking whether that subset clears 52.4%.
 
--   **Use Kelly Criterion for bet sizing (e.g., half-Kelly):**
-    ```bash
-    python main.py --kelly_fraction 0.5 --initial_bankroll 2000
-    ```
+## Stack
 
-### Interactive Dashboard (Streamlit)
-
-To launch the interactive dashboard, navigate to the project root directory and run:
-
-```bash
-streamlit run app.py
-```
-
-This will open the application in your web browser, where you can adjust parameters and view results interactively.
-
-<p align="center">
-  <img src="reports/dashboard_mockup.png" width="800" alt="NFL Gambling Market Analytics Dashboard Mockup">
-</p>
-
-## Results and Findings
-
-*(This section will be populated with a summary of the analysis findings, model performance, and betting simulation outcomes after running the full pipeline. It will draw insights from the generated `Analysis_Report.md`.)*
-
-## Future Enhancements
-
--   **Actual Betting Odds Integration:** Integrate real-time or historical betting odds from external APIs to replace simulated odds for more accurate value bet identification.
--   **More Sophisticated Betting Strategies:** Implement advanced bankroll management techniques (e.g., dynamic Kelly sizing, proportional betting based on edge).
--   **Additional Data Sources:** Incorporate player-level statistics, injury reports, public betting sentiment, or advanced meteorological data.
--   **Model Interpretability:** Further explore techniques like SHAP values for deeper insights into model predictions.
--   **Deployment:** Explore deploying the predictive model as an API for real-time predictions or integrating it into a live betting system.
--   **Interactive Visualizations:** Enhance Streamlit dashboard with more interactive plots and filtering options.
-
-## Contributing
-
-Contributions are welcome! Please feel free to open issues or submit pull requests.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+Python · pandas · scikit-learn · XGBoost · Optuna · SHAP · Streamlit · Docker
