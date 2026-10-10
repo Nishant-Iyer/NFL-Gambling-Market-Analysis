@@ -1,0 +1,117 @@
+{
+  "model": "xgboost",
+  "params": {
+    "n_estimators": 113,
+    "max_depth": 4,
+    "learning_rate": 0.00752858921233551,
+    "subsample": 0.9948036277231882,
+    "min_child_weight": 14
+  },
+  "tuning_log_loss": {
+    "logistic_regression": 0.6929806376542712,
+    "xgboost": 0.6907743811607361
+  },
+  "games_total": 10923,
+  "games_tested": 5460,
+  "pushes_tested": 94,
+  "first_test_date": "2003-12-07",
+  "last_test_date": "2024-02-11",
+  "accuracy": 0.5167722698471859,
+  "break_even": 0.5238095238095238,
+  "over_rate": 0.4880730525531122,
+  "log_loss": 0.6920444945713572,
+  "log_loss_coin": 0.6931471805599453,
+  "brier": 0.24944844290175022,
+  "folds": [
+    {
+      "fold": 1,
+      "start": "2003-12-07",
+      "end": "2007-12-22",
+      "games": 1070,
+      "accuracy": 0.5037383177570094
+    },
+    {
+      "fold": 2,
+      "start": "2007-12-23",
+      "end": "2012-01-01",
+      "games": 1069,
+      "accuracy": 0.5144995322731525
+    },
+    {
+      "fold": 3,
+      "start": "2012-01-01",
+      "end": "2016-09-11",
+      "games": 1072,
+      "accuracy": 0.5065298507462687
+    },
+    {
+      "fold": 4,
+      "start": "2016-09-11",
+      "end": "2020-09-20",
+      "games": 1080,
+      "accuracy": 0.5120370370370371
+    },
+    {
+      "fold": 5,
+      "start": "2020-09-21",
+      "end": "2024-02-11",
+      "games": 1075,
+      "accuracy": 0.5469767441860465
+    }
+  ],
+  "by_confidence": [
+    {
+      "from": 0,
+      "to": 0.02,
+      "games": 3798,
+      "accuracy": 0.5052659294365456
+    },
+    {
+      "from": 0.02,
+      "to": 0.04,
+      "games": 928,
+      "accuracy": 0.5420258620689655
+    },
+    {
+      "from": 0.04,
+      "to": 0.06,
+      "games": 402,
+      "accuracy": 0.5248756218905473
+    },
+    {
+      "from": 0.06,
+      "to": 0.08,
+      "games": 149,
+      "accuracy": 0.610738255033557
+    },
+    {
+      "from": 0.08,
+      "to": 1,
+      "games": 89,
+      "accuracy": 0.550561797752809
+    }
+  ],
+  "strategies": {
+    "flat_edge3": {
+      "bets": 341,
+      "win_rate": 0.5565476190476191,
+      "final": 6050.0,
+      "roi": 0.06158357771260543,
+      "max_drawdown": 0.12472160356347557
+    },
+    "flat_edge0": {
+      "bets": 1317,
+      "win_rate": 0.5497301464919044,
+      "final": 8209.09,
+      "roi": 0.04873334713880976,
+      "max_drawdown": 0.24450307827617937
+    },
+    "half_kelly_edge3": {
+      "bets": 341,
+      "win_rate": 0.5565476190476191,
+      "final": 10110.54,
+      "roi": 0.03633284745650522,
+      "max_drawdown": 0.5552939082857903
+    }
+  }
+}
