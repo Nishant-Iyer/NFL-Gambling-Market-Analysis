@@ -79,3 +79,7 @@ Other options: `--dataset_path` (default `Dataset.xlsx`) and `--bet_amount_fixed
 ## Stack
 
 Python · pandas · scikit-learn · XGBoost · Optuna · SHAP · Streamlit · Docker
+
+## License
+
+MIT. See [LICENSE](LICENSE).
