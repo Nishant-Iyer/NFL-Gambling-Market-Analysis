@@ -2,7 +2,7 @@
 
 Can a model beat the bookmakers' Over/Under lines? This project builds the features a sharp bettor would use (team strength, rest, travel, weather) and tests them with walk-forward backtesting and simulated betting. The short answer: the market is very efficient, and this project measures how efficient.
 
-**[Live demo](https://www.konnectingnots.com/demos/nfl.html)** · **[Case study](https://www.konnectingnots.com/projects/nfl-betting.html)** · **[Full report](Analysis_Report.md)**
+**[Live demo](https://nishant-iyer.github.io/demos/nfl.html)** · **[Case study](https://nishant-iyer.github.io/projects/nfl-betting.html)** · **[Full report](Analysis_Report.md)**
 
 ## Results
 
